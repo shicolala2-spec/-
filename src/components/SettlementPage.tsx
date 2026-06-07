@@ -444,65 +444,69 @@ export default function SettlementPage() {
 
           <div className="space-y-3">
             <h3 className="text-xs font-bold text-zinc-900">سجل الفواتير والمعاملات الصادرة/الواردة:</h3>
-            <table className="w-full text-right text-[11px] border-collapse">
-              <thead>
-                <tr className="border-b-2 border-t border-zinc-900 bg-zinc-50 font-bold">
-                  <th className="py-2 pr-2">التاريخ</th>
-                  <th className="py-2">رقم الفاتورة ونوعها</th>
-                  <th className="py-2 text-center">المستحق الإجمالي</th>
-                  <th className="py-2 text-center">المدفوع فوراً</th>
-                  <th className="py-2 text-left pl-2">المتبقي الذمة المترتبة</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {matchingInvoices.map((inv) => (
-                  <tr key={inv.id}>
-                    <td className="py-2 pr-2 font-mono">{inv.date}</td>
-                    <td className="py-2 font-bold">{inv.invoiceNumber} ({inv.type})</td>
-                    <td className="py-2 text-center font-mono">{Math.round(inv.amount).toLocaleString('ar-SA')} ج.م</td>
-                    <td className="py-2 text-center font-mono">{Math.round(inv.paid).toLocaleString('ar-SA')} ج.م</td>
-                    <td className="py-2 text-left pl-2 font-mono font-bold">{Math.round(inv.balanceCreated).toLocaleString('ar-SA')} ج.م</td>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-right text-[11px] border-collapse min-w-[500px]">
+                <thead>
+                  <tr className="border-b-2 border-t border-zinc-900 bg-zinc-50 font-bold">
+                    <th className="py-2 pr-2">التاريخ</th>
+                    <th className="py-2">رقم الفاتورة ونوعها</th>
+                    <th className="py-2 text-center">المستحق الإجمالي</th>
+                    <th className="py-2 text-center">المدفوع فوراً</th>
+                    <th className="py-2 text-left pl-2">المتبقي الذمة المترتبة</th>
                   </tr>
-                ))}
-                {matchingInvoices.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-4 text-center text-zinc-500">لا توجد فواتير تاريخية معمدة لهذا الطرف</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {matchingInvoices.map((inv) => (
+                    <tr key={inv.id}>
+                      <td className="py-2 pr-2 font-mono">{inv.date}</td>
+                      <td className="py-2 font-bold">{inv.invoiceNumber} ({inv.type})</td>
+                      <td className="py-2 text-center font-mono">{Math.round(inv.amount).toLocaleString('ar-SA')} ج.م</td>
+                      <td className="py-2 text-center font-mono">{Math.round(inv.paid).toLocaleString('ar-SA')} ج.م</td>
+                      <td className="py-2 text-left pl-2 font-mono font-bold">{Math.round(inv.balanceCreated).toLocaleString('ar-SA')} ج.م</td>
+                    </tr>
+                  ))}
+                  {matchingInvoices.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-4 text-center text-zinc-500">لا توجد فواتير تاريخية معمدة لهذا الطرف</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Payments list within statement */}
           <div className="space-y-3 pt-4">
             <h3 className="text-xs font-bold text-zinc-900">سجل الصرف وسندات تحصيل الدفعات:</h3>
-            <table className="w-full text-right text-[11px] border-collapse">
-              <thead>
-                <tr className="border-b-2 border-t border-zinc-900 bg-zinc-50 font-bold">
-                  <th className="py-2 pr-2">تاريخ السند</th>
-                  <th className="py-2">رقم المستند والنوع والوسيلة</th>
-                  <th className="py-2">وصف المعاملة</th>
-                  <th className="py-2 text-left pl-2">المبلغ المستلم/المدفوع</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {matchingPayments.map((p) => (
-                  <tr key={p.id}>
-                    <td className="py-2 pr-2 font-mono">{p.date}</td>
-                    <td className="py-2 font-bold">
-                      {p.receiptNumber} ({p.type === 'payment' ? 'سند صرف صرف' : 'سند قبض مصل'}) - {p.paymentMethod === 'cash' ? 'نقدي' : 'بنكي'}
-                    </td>
-                    <td className="py-2 text-zinc-650 font-medium">{p.notes || 'تسوية رصيد تاريخية'}</td>
-                    <td className="py-2 text-left pl-2 font-mono font-bold">{Math.round(p.amount).toLocaleString('ar-SA')} جنيه</td>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-right text-[11px] border-collapse min-w-[500px]">
+                <thead>
+                  <tr className="border-b-2 border-t border-zinc-900 bg-zinc-50 font-bold">
+                    <th className="py-2 pr-2">تاريخ السند</th>
+                    <th className="py-2">رقم المستند والنوع والوسيلة</th>
+                    <th className="py-2">وصف المعاملة</th>
+                    <th className="py-2 text-left pl-2">المبلغ المستلم/المدفوع</th>
                   </tr>
-                ))}
-                {matchingPayments.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-4 text-center text-zinc-500">لا توجد حركات سداد بنكية أو نقدية مسجلة لاحقًا</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {matchingPayments.map((p) => (
+                    <tr key={p.id}>
+                      <td className="py-2 pr-2 font-mono">{p.date}</td>
+                      <td className="py-2 font-bold">
+                        {p.receiptNumber} ({p.type === 'payment' ? 'سند صرف صرف' : 'سند قبض مصل'}) - {p.paymentMethod === 'cash' ? 'نقدي' : 'بنكي'}
+                      </td>
+                      <td className="py-2 text-zinc-650 font-medium">{p.notes || 'تسوية رصيد تاريخية'}</td>
+                      <td className="py-2 text-left pl-2 font-mono font-bold">{Math.round(p.amount).toLocaleString('ar-SA')} جنيه</td>
+                    </tr>
+                  ))}
+                  {matchingPayments.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-4 text-center text-zinc-500">لا توجد حركات سداد بنكية أو نقدية مسجلة لاحقًا</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Printable calculation disclaimer */}

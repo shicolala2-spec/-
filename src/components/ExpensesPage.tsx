@@ -12,6 +12,7 @@ import {
   BarChart3, PieChart, Users, Coins, Image, Check, ChevronDown, 
   TrendingUp, TrendingDown, Clipboard, AlertCircle, Sparkles
 } from 'lucide-react';
+import { unifiedDocumentAnalysis } from '../lib/documentAnalyzer';
 
 export const CATEGORY_STRUCTURES: Record<string, { nameAr: string; subCategories: string[] }> = {
   Transportation: {
@@ -124,23 +125,8 @@ export default function ExpensesPage() {
     setAnalysisSuccess(false);
 
     try {
-      const response = await fetch('/api/expenses/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileBase64: attachment,
-          fileName: 'invoice'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'عذراً، فشل تحليل الفاتورة من خلال الخادم الذكي.');
-      }
-
-      const data = await response.json();
+      const res = await unifiedDocumentAnalysis(attachment, 'invoice', true);
+      const data: any = res.expense || res;
       
       // Map extracted values into the React inputs
       if (data.amount !== undefined && data.amount !== null) {
@@ -162,8 +148,12 @@ export default function ExpensesPage() {
       if (data.notes) setNotes(data.notes);
 
       setAnalysisSuccess(true);
-      setSuccessMsg('✨ تم بنجاح قراءة المستند تلقائياً بالذكاء الاصطناعي وتعبئة حقول ومبالغ الحسابات لشركة الهضبة!');
-      setTimeout(() => setSuccessMsg(''), 6000);
+      if (res.isMockDemo || data.isMockDemo) {
+        setSuccessMsg('✨ وضع محاكاة الفاتورة السريع: تم تعبئة البيانات آلياً بنجاح! للتشغيل بقارئ سحابي حقيقي يمكنك تعبئة مفتاحك في شاشة لوحة القيادة.');
+      } else {
+        setSuccessMsg('✨ تم بنجاح قراءة المستند تلقائياً بالذكاء الاصطناعي وتعبئة حقول ومبالغ الحسابات لشركة الهضبة!');
+      }
+      setTimeout(() => setSuccessMsg(''), 7000);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'فشلت عملية القراءة والتحليل التلقائي للمستند (AI OCR).');

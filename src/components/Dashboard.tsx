@@ -10,6 +10,12 @@ import {
   ArrowDownLeft, Users, Package, Award, Calendar, RefreshCw, Wallet,
   Sparkles, Upload, FileText, Check, AlertCircle, Edit3, X, Plus, Trash2, ShoppingCart
 } from 'lucide-react';
+import {
+  unifiedDocumentAnalysis,
+  getClientApiKey,
+  setClientApiKey,
+  isStaticClientOnly
+} from '../lib/documentAnalyzer';
 
 export default function Dashboard() {
   const { 
@@ -20,6 +26,11 @@ export default function Dashboard() {
 
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'month'>('all');
   const [tickerIndex, setTickerIndex] = useState(0);
+
+  // Client-side API Key setup UI state
+  const [showKeyConfig, setShowKeyConfig] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState(getClientApiKey());
+  const [staticDeployment] = useState(isStaticClientOnly());
 
   // AI OCR Scanner States
   const [attachment, setAttachment] = useState<string>('');
@@ -76,23 +87,7 @@ export default function Dashboard() {
     setAiSuccess('');
     
     try {
-      const response = await fetch('/api/invoices/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileBase64: attachment,
-          fileName: 'invoice.png'
-        }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'عذراً، فشل السيرفر في معالجة المستند بقوائم جميني.');
-      }
-
-      const res = await response.json();
+      const res = await unifiedDocumentAnalysis(attachment, 'invoice.png', false);
       setAnalysisResult(res);
 
       // Pre-fill editable states
@@ -124,8 +119,13 @@ export default function Dashboard() {
         setEditNotes(res.expense?.notes || 'مصروف جاري مستخرج من المستند المالي');
         setEditDate(res.expense?.date || new Date().toISOString().split('T')[0]);
       }
-      setAiSuccess('✨ تم فحص وتصنيف المستند الذكي بنجاح! راجع البيانات أدناه قبل الاعتماد.');
-      setTimeout(() => setAiSuccess(''), 6000);
+      
+      if (res.isMockDemo) {
+        setAiSuccess('✨ وضع المحاكاة الذكي لـ GitHub Pages: تم قراءة وتعبئة الفاتوة بنجاح! لشحن مسح حقيقي بكاميرا هاتفك يمكنك حفظ مفتاح Gemini بالأسفل.');
+      } else {
+        setAiSuccess('✨ تم فحص وتصنيف المستند الذكي بنجاح! راجع البيانات أدناه قبل الاعتماد.');
+      }
+      setTimeout(() => setAiSuccess(''), 7000);
     } catch (err: any) {
       console.error(err);
       setAiError(err.message || 'عذراً، فشل فحص وتصنيف البيانات عن بعد.');
@@ -400,6 +400,64 @@ export default function Dashboard() {
           <span className="text-[10px] text-indigo-400 font-mono select-none bg-indigo-950/35 border border-indigo-900/60 px-3 py-1 rounded-full shrink-0">
             محرك الإدراك المالي بجميني 3.5
           </span>
+        </div>
+
+        {/* GitHub Pages Direct Key Configurator */}
+        <div className="p-4 bg-indigo-950/10 rounded-2xl border border-indigo-900/30 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${tempApiKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className="text-xs font-bold text-slate-100">بوابة التشغيل السحابي والمسح (GitHub Pages)</span>
+            </div>
+            <button
+              onClick={() => setShowKeyConfig(!showKeyConfig)}
+              className="text-xs text-[#2997ff] hover:underline cursor-pointer"
+            >
+              {showKeyConfig ? 'إخفاء الإعدادات ×' : 'إعدادات مفتاح جميني الخاص بك ⚙️'}
+            </button>
+          </div>
+          
+          {(showKeyConfig || !tempApiKey) && (
+            <div className="space-y-3 pt-2 text-xs border-t border-indigo-900/20 animate-fade-in text-right">
+              <p className="text-[#86868b] leading-relaxed">
+                هذا النظام مصمم بشكل متطور ليعمل كلياً بدون خوادم على GitHub Pages أو خوادمك الخاصة. 
+                بشكل تلقائي، إذا لم تقم بإدخال مفتاح سحابي، سيقوم النظام بتمرير <b>"المحاكاة الذكية الملتزمة"</b> للملفات لتجربة حقول الساحة والأوزان. لتفعيل مسح حقيقي مباشر من الكاميرا أو الصور لكافة فواتيرك، تولّد بمفتاح مجاني من موقع <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="text-[#2997ff] hover:underline">Google AI Studio</a> وألصقه بالأسفل:
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="password"
+                  placeholder="أدخل مفتاح Gemini API Key هنا (يبدأ بـ AIzaSy...)"
+                  value={tempApiKey || ''}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  className="flex-1 bg-black border border-[#333336] px-3.5 py-2 rounded-xl text-white text-xs outline-none focus:border-indigo-500 font-mono text-left"
+                  dir="ltr"
+                />
+                <button
+                  onClick={() => {
+                    setClientApiKey(tempApiKey);
+                    alert("تم حفظ مفتاح Gemini API بنجاح في متصفحك! ميزات الذكاء الاصطناعي الحقيقية مفعلة الآن كلياً على GitHub Pages.");
+                    setShowKeyConfig(false);
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                >
+                  حفظ في المتصفح 💾
+                </button>
+                {tempApiKey && (
+                  <button
+                    onClick={() => {
+                      setTempApiKey('');
+                      setClientApiKey('');
+                      alert("تم حذف المفتاح بنجاح. سيتراجع النظام للوضع المحاكي الفوري.");
+                      setShowKeyConfig(false);
+                    }}
+                    className="bg-rose-950/40 border border-[#3c1e21] text-rose-300 hover:bg-rose-950/65 px-4 py-2 rounded-xl text-xs transition-all cursor-pointer shrink-0"
+                  >
+                    حذف المفتاح ×
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notifications and Feedback Alerts */}
