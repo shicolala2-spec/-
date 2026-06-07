@@ -37,6 +37,7 @@ export interface AnalysisResultType {
 export const isStaticClientOnly = (): boolean => {
   return (
     window.location.hostname.includes('github.io') ||
+    window.location.hostname.includes('vercel.app') ||
     window.location.hostname.includes('static') ||
     window.location.href.includes('index.html') ||
     // If no backend development server is alive on port 3000
